@@ -5,6 +5,9 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
+    database_url: str
+    database_token: str
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

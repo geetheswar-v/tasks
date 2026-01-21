@@ -1,12 +1,12 @@
-import os
 from sqlmodel import Session, create_engine, SQLModel
 from typing import Generator
+from app.config import settings
 
-sqlite_file_name = "app.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=False, connect_args=connect_args)
+engine = create_engine(
+    f"sqlite+libsql://{settings.database_url}?secure=true",
+    connect_args={"auth_token": settings.database_token},
+    echo=False
+)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
