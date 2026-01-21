@@ -38,6 +38,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 transition-colors duration-300">
+        <div className='fixed top-0 left-0 h-8 bg-background w-full' />
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4">
           <header className="rounded-lg border bg-card/60 backdrop-blur-xl overflow-hidden shadow-lg shadow-black/5">
             <div className="px-6 h-16 flex items-center justify-between gap-4">
