@@ -3,23 +3,32 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FilterBar } from './components/FilterBar';
 import { InfiniteList } from './components/InfiniteList';
 import { CreateItemModal } from './components/CreateItemModal';
+import { AuthModal } from './components/AuthModal';
 import type { ItemStatus } from './hooks/useItems';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from './components/ui/button';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status === 401) return false;
+        return failureCount < 1;
+      },
     },
   },
 });
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<any>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [statusFilter, setStatusFilter] = useState<ItemStatus | 'All'>('All');
   const [showArchive, setShowArchive] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(!localStorage.getItem('token'));
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -35,6 +44,22 @@ const App: React.FC = () => {
     }
   }, [isDark]);
 
+  const handleLoginSuccess = (userData: any, token: string) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    setIsAuthModalOpen(false);
+    queryClient.invalidateQueries();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsAuthModalOpen(true);
+    queryClient.clear();
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 transition-colors duration-300">
@@ -43,30 +68,54 @@ const App: React.FC = () => {
             <div className="px-6 h-16 flex items-center justify-between gap-4">
               <div className="flex items-center gap-6">
                 <h1 className="text-lg font-semibold tracking-tight">Tasks</h1>
-                <div className="hidden sm:block h-6 w-px bg-border" />
-                <div className="hidden md:block">
-                  <FilterBar 
-                    statusFilter={statusFilter}
-                    setStatusFilter={setStatusFilter}
-                    showArchive={showArchive}
-                    setShowArchive={setShowArchive}
-                    onCreateClick={() => setIsCreateModalOpen(true)}
-                  />
-                </div>
+                {user && (
+                    <>
+                        <div className="hidden sm:block h-6 w-px bg-border" />
+                        <div className="hidden md:block">
+                        <FilterBar 
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            showArchive={showArchive}
+                            setShowArchive={setShowArchive}
+                            onCreateClick={() => setIsCreateModalOpen(true)}
+                        />
+                        </div>
+                    </>
+                )}
               </div>
               
               <div className="flex items-center gap-3">
-                <Button 
-                  onClick={() => setIsCreateModalOpen(true)}
-                  variant="default"
-                  title="New Task"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>New Task</span>
-                </Button>
+                {user ? (
+                    <>
+                        <Button 
+                            onClick={() => setIsCreateModalOpen(true)}
+                            variant="default"
+                            className="h-9 px-4"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span className="hidden sm:inline">New Task</span>
+                        </Button>
+                        <Button
+                            onClick={handleLogout}
+                            variant="outline"
+                            className="text-muted-foreground hover:text-destructive"
+                            title="Log out"
+                        >
+                            <span className="text-xs font-medium hidden sm:block pr-1">{user.name}</span>
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </>
+                ) : (
+                    <Button onClick={() => setIsAuthModalOpen(true)}>
+                        Sign In
+                    </Button>
+                )}
+                <div className="h-6 w-px bg-border mx-1" />
                 <Button
                   onClick={() => setIsDark(!isDark)}
                   variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
                 >
                   <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -87,35 +136,59 @@ const App: React.FC = () => {
                       <path d="M12 14.3l7.37 -7.37" />
                       <path d="M12 19.6l8.85 -8.85" />
                     </svg>
-                    <span className="sr-only">Toggle theme</span>
                 </Button>
               </div>
             </div>
-            <div className="md:hidden border-t px-6 py-2 bg-background/40">
-              <FilterBar 
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                showArchive={showArchive}
-                setShowArchive={setShowArchive}
-                onCreateClick={() => setIsCreateModalOpen(true)}
-              />
-            </div>
+            {user && (
+                <div className="md:hidden border-t px-6 py-2 bg-background/40">
+                <FilterBar 
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    showArchive={showArchive}
+                    setShowArchive={setShowArchive}
+                    onCreateClick={() => setIsCreateModalOpen(true)}
+                />
+                </div>
+            )}
           </header>
         </div>
 
         <main className="container max-w-4xl mx-auto px-4 pt-44 pb-24 md:pt-32">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <InfiniteList 
-              statusFilter={statusFilter}
-              showArchive={showArchive}
-            />
-          </div>
+          {user ? (
+              <>
+                <div className="rounded-lg border bg-card overflow-hidden">
+                    <InfiniteList 
+                    statusFilter={statusFilter}
+                    showArchive={showArchive}
+                    />
+                </div>
 
-          <CreateItemModal 
-            open={isCreateModalOpen}
-            onOpenChange={setIsCreateModalOpen}
-          />
+                <CreateItemModal 
+                    open={isCreateModalOpen}
+                    onOpenChange={setIsCreateModalOpen}
+                />
+              </>
+          ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-4">
+                      <UserIcon className="h-8 w-8 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+                  <p className="text-muted-foreground max-w-xs">
+                      Please sign in to view and manage your tasks securely.
+                  </p>
+                  <Button onClick={() => setIsAuthModalOpen(true)} size="lg" className="mt-4 px-8">
+                      Sign In to Continue
+                  </Button>
+              </div>
+          )}
         </main>
+
+        <AuthModal 
+          open={isAuthModalOpen} 
+          onOpenChange={(open) => !user && setIsAuthModalOpen(open)}
+          onSuccess={handleLoginSuccess}
+        />
       </div>
     </QueryClientProvider>
   );

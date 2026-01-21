@@ -10,4 +10,9 @@ dependencies = [
     "scalar-fastapi>=1.6.1",
     "sqlmodel>=0.0.31",
     "uvicorn[standard]>=0.40.0",
+    "pyjwt>=2.10.1",
+    "bcrypt>=4.0.0",
+    "python-multipart>=0.0.12",
+    "pydantic-settings>=2.12.0",
+    "sqlalchemy-libsql>=0.2.0",
 ]

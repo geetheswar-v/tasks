@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.endpoints import router
+from app.api.main import api_router
 from app.db import create_db_and_tables
 from scalar_fastapi import get_scalar_api_reference
 
@@ -23,7 +23,7 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-app.include_router(router)
+app.include_router(api_router)
 
 @app.get("/")
 def read_root():
