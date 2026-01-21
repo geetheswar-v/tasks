@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 from app.db import create_db_and_tables
+from scalar_fastapi import get_scalar_api_reference
 
-app = FastAPI(title="Task Management System")
+app = FastAPI(
+    title="Task Management System",
+    docs_url=None,
+    redoc_url=None
+)
 
 # CORS setup
 app.add_middleware(
@@ -23,3 +28,10 @@ app.include_router(api_router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Task Management API"}
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_scalar_api_reference(
+        openapi_url=app.openapi_url,
+        title="API Docs"
+    )
