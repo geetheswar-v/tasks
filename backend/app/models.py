@@ -3,6 +3,20 @@ from enum import Enum
 from typing import Optional
 from sqlmodel import Field, SQLModel, Column, DateTime, func, String
 
+class UserBase(SQLModel):
+    username: str = Field(index=True, unique=True)
+    name: str
+
+class UserCreate(UserBase):
+    password: str
+
+class UserPublic(UserBase):
+    id: int
+
+class User(UserBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_password: str
+
 class ItemStatus(str, Enum):
     PENDING = "Pending"
     IN_PROGRESS = "In Progress"
@@ -24,6 +38,7 @@ class ItemUpdate(SQLModel):
 
 class Item(ItemBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    owner_id: int = Field(foreign_key="user.id", nullable=False)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(),
         sa_column=Column(DateTime(timezone=True), server_default=func.now())
