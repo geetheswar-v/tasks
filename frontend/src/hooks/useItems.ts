@@ -111,3 +111,29 @@ export const usePermanentDeleteItem = () => {
     },
   });
 };
+
+export const useBulkSoftDelete = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const response = await apiClient.delete('/items/', { data: ids });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+  });
+};
+
+export const useBulkPermanentDelete = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const response = await apiClient.delete('/items/bulk/permanent', { data: ids });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+  });
+};

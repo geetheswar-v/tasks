@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlmodel import Session
 from app.db import get_session
 from app.models import Item, ItemCreate, ItemUpdate, ItemStatus
@@ -34,6 +34,15 @@ def update_item(item_id: int, item: ItemUpdate, session: Session = Depends(get_s
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     return crud.update_item(session, db_item, item)
+
+@router.delete("/bulk/permanent")
+def permanent_delete_items(item_ids: List[int] = Body(...), session: Session = Depends(get_session)):
+    crud.permanent_delete_items(session, item_ids)
+    return {"ok": True}
+
+@router.delete("/", response_model=List[Item])
+def soft_delete_items(item_ids: List[int] = Body(...), session: Session = Depends(get_session)):
+    return crud.soft_delete_items(session, item_ids)
 
 @router.delete("/{item_id}", response_model=Item)
 def soft_delete_item(item_id: int, session: Session = Depends(get_session)):

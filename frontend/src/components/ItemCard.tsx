@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, RotateCcw, Trash } from 'lucide-react';
 import { type Item, type ItemStatus, useSoftDeleteItem, useRestoreItem, usePermanentDeleteItem } from '@/hooks/useItems';
 import { CreateItemModal } from './CreateItemModal';
+import { Checkbox } from '@/components/ui/checkbox';
 
 import {
   AlertDialog,
@@ -18,9 +19,11 @@ import {
 
 interface ItemCardProps {
   item: Item;
+  isSelected?: boolean;
+  onSelect?: (id: number, selected: boolean) => void;
 }
 
-export const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ item, isSelected, onSelect }) => {
   const softDeleteMutation = useSoftDeleteItem();
   const restoreMutation = useRestoreItem();
   const permanentDeleteMutation = usePermanentDeleteItem();
@@ -57,10 +60,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
         className={`group flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors cursor-pointer ${item.is_deleted ? 'opacity-50' : ''}`}
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className={`w-2 h-2 rounded-full shrink-0 ${
-            item.status === 'Completed' ? 'bg-green-500' : 
-            item.status === 'In Progress' ? 'bg-blue-500' : 'bg-yellow-500'
-          }`} />
+          <Checkbox 
+            checked={isSelected} 
+            onCheckedChange={(checked) => onSelect?.(item.id, !!checked)}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0"
+          />
           
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">
@@ -75,11 +80,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Badge variant="outline" className={`hidden sm:flex rounded-full text-[10px] px-2 py-0 h-5 font-normal ${getStatusColor(item.status)}`}>
-            {item.status}
-          </Badge>
+          <div className="w-24 flex justify-center">
+            <Badge variant="outline" className={`hidden sm:flex rounded-full text-[10px] px-2 py-0 h-5 font-normal ${getStatusColor(item.status)}`}>
+              {item.status}
+            </Badge>
+          </div>
 
-          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="w-24 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
             {!item.is_deleted ? (
               <Button 
                 variant="ghost" 
@@ -90,7 +97,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
                 <Trash2 className="h-4 w-4" />
               </Button>
             ) : (
-              <div className="flex gap-1">
+              <>
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -110,7 +117,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
-              </div>
+              </>
             )}
           </div>
         </div>

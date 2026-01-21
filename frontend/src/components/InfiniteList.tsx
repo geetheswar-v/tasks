@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { ItemCard } from './ItemCard';
-import { type ItemStatus, useInfiniteItems } from '@/hooks/useItems';
-import { Loader2, Inbox } from 'lucide-react';
+import { type ItemStatus, useInfiniteItems, useBulkSoftDelete, useBulkPermanentDelete } from '@/hooks/useItems';
+import { Loader2, Inbox, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 interface InfiniteListProps {
   statusFilter: ItemStatus | 'All';
@@ -11,6 +13,10 @@ interface InfiniteListProps {
 
 export const InfiniteList: React.FC<InfiniteListProps> = ({ statusFilter, showArchive }) => {
   const { ref, inView } = useInView();
+  const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
+  
+  const bulkSoftDelete = useBulkSoftDelete();
+  const bulkPermanentDelete = useBulkPermanentDelete();
   
   const {
     data,
@@ -62,10 +68,76 @@ export const InfiniteList: React.FC<InfiniteListProps> = ({ statusFilter, showAr
     );
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(items.map(item => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectItem = (id: number, selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    
+    if (showArchive) {
+      bulkPermanentDelete.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    } else {
+      bulkSoftDelete.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
   return (
-    <div className="divide-y divide-border">
+    <div className="border rounded-xl overflow-hidden bg-card">
+      {/* Table Header */}
+      <div className="flex items-center justify-between px-6 py-3 bg-muted/50 border-b text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="flex items-center gap-4 flex-1">
+          <Checkbox 
+            checked={items.length > 0 && selectedIds.length === items.length}
+            onCheckedChange={(checked) => handleSelectAll(!!checked)}
+            aria-label="Select all"
+          />
+          <span className="ml-4">Details</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="w-24 text-center">Status</div>
+          <div className="w-24 text-right pr-2 flex justify-end items-center gap-2">
+            {selectedIds.length > 0 ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
+                onClick={handleBulkDelete}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="text-[10px]">Delete ({selectedIds.length})</span>
+              </Button>
+            ) : (
+              <span>Actions</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="divide-y divide-border">
       {items.map((item) => (
-        <ItemCard key={item.id} item={item} />
+        <ItemCard 
+          key={item.id} 
+          item={item} 
+          isSelected={selectedIds.includes(item.id)}
+          onSelect={handleSelectItem}
+        />
       ))}
       
       {hasNextPage && (
@@ -78,5 +150,6 @@ export const InfiniteList: React.FC<InfiniteListProps> = ({ statusFilter, showAr
         </div>
       )}
     </div>
-  );
+  </div>
+);
 };

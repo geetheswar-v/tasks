@@ -19,6 +19,9 @@ def get_items(
     statement = select(Item)
     if not include_deleted:
         statement = statement.where(Item.is_deleted == False)
+    else:
+        statement = statement.where(Item.is_deleted == True)
+    
     if status:
         statement = statement.where(Item.status == status)
     
@@ -52,4 +55,20 @@ def restore_item(session: Session, db_item: Item) -> Item:
 
 def permanent_delete_item(session: Session, db_item: Item):
     session.delete(db_item)
+    session.commit()
+
+def soft_delete_items(session: Session, item_ids: List[int]):
+    statement = select(Item).where(Item.id.in_(item_ids))
+    items = session.exec(statement).all()
+    for item in items:
+        item.is_deleted = True
+        session.add(item)
+    session.commit()
+    return items
+
+def permanent_delete_items(session: Session, item_ids: List[int]):
+    statement = select(Item).where(Item.id.in_(item_ids))
+    items = session.exec(statement).all()
+    for item in items:
+        session.delete(item)
     session.commit()
