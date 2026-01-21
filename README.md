@@ -31,7 +31,30 @@ sh scripts/setup.sh
 scripts\setup.bat
 ```
 
-### 3. Run
+### 3. Seed Data (Optional)
+
+If you want to test the application with prepopulated users and tasks, run the seed script.
+
+**macOS / Linux:**
+
+```bash
+./scripts/seed.sh
+#or
+sh scripts/seed.sh
+```
+
+**Windows:**
+
+```batch
+scripts\seed.bat
+```
+
+This creates two users:
+
+- **User 1**: Username: `satcard`, Password: `satcard` (200 tasks)
+- **User 2**: Username: `testing`, Password: `testing` (100 tasks)
+
+### 4. Run
 
 Start the application (Backend + Frontend Preview).
 
