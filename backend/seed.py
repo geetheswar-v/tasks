@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from app.db import engine, create_db_and_tables
 from app.models import Item, ItemStatus, UserCreate
@@ -22,12 +23,17 @@ def seed_user_data(username: str, name: str, password: str, num_items: int):
         print(f"Seeding {num_items} items for {username}...")
         statuses = list(ItemStatus)
         
+        base_time = datetime.now() - timedelta(days=30)
+        
         for i in range(1, num_items + 1):
+            current_task_time = base_time + timedelta(seconds=i * 10)
             item = Item(
                 title=f"OELP Task {existing_items_count + i}",
                 description=fake.sentence(nb_words=12),
                 status=random.choice(statuses),
-                owner_id=db_user.id
+                owner_id=db_user.id,
+                created_at=current_task_time,
+                updated_at=current_task_time
             )
             session.add(item)
         
@@ -43,7 +49,7 @@ def main():
         username="satcard", 
         name="SATCARD", 
         password="satcard", 
-        num_items=200
+        num_items=70
     )
     
     # Testing
@@ -51,7 +57,7 @@ def main():
         username="testing", 
         name="Testing", 
         password="testing", 
-        num_items=100
+        num_items=30
     )
     
     print("Database seeding complete!")
