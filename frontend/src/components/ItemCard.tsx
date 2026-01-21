@@ -39,6 +39,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, isSelected, onSelect }
     }
   };
 
+  const getStatusDotColor = (status: ItemStatus) => {
+    switch (status) {
+      case 'Pending': return 'bg-yellow-500';
+      case 'In Progress': return 'bg-blue-500';
+      case 'Completed': return 'bg-green-500';
+      default: return 'bg-muted-foreground';
+    }
+  };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsDeleteDialogOpen(true);
@@ -68,9 +77,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, isSelected, onSelect }
           />
           
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-              {item.title}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                {item.title}
+              </span>
+              {/* Mobile Status Dot */}
+              <div className={`sm:hidden w-1.5 h-1.5 rounded-full ${getStatusDotColor(item.status)}`} />
+            </div>
             {item.description && (
               <span className="text-xs text-muted-foreground truncate max-w-md">
                 {item.description}
@@ -79,14 +92,25 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, isSelected, onSelect }
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="w-24 flex justify-center">
-            <Badge variant="outline" className={`hidden sm:flex rounded-full text-[10px] px-2 py-0 h-5 font-normal ${getStatusColor(item.status)}`}>
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile Delete */}
+          <div className="sm:hidden">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="hidden sm:flex w-24 justify-center">
+            <Badge variant="outline" className={`rounded-full text-[10px] px-2 py-0 h-5 font-normal ${getStatusColor(item.status)}`}>
               {item.status}
             </Badge>
           </div>
 
-          <div className="w-24 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+          <div className="hidden sm:flex w-24 justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
             {!item.is_deleted ? (
               <Button 
                 variant="ghost" 

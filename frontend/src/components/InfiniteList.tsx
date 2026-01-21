@@ -111,7 +111,7 @@ export const InfiniteList: React.FC<InfiniteListProps> = ({ statusFilter, showAr
           <span className="ml-4">Details</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-24 text-center">Status</div>
+          <div className="w-24 text-center md:block hidden">Status</div>
           <div className="w-24 text-right pr-2 flex justify-end items-center gap-2">
             {selectedIds.length > 0 ? (
               <Button 
