@@ -2,7 +2,7 @@ import os
 from sqlmodel import Session, create_engine, SQLModel
 from typing import Generator
 
-sqlite_file_name = "app.db"
+sqlite_file_name = "app_no_auth.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}

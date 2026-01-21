@@ -31,7 +31,25 @@ sh scripts/setup.sh
 scripts\setup.bat
 ```
 
-### 3. Run
+### 3. Seed Data (Optional)
+
+If you want to test the application with a large dataset, run the seed script to add 500 tasks.
+
+**macOS / Linux:**
+
+```bash
+./scripts/seed.sh
+#or
+sh scripts/seed.sh
+```
+
+**Windows:**
+
+```batch
+scripts\seed.bat
+```
+
+### 4. Run
 
 Start the application (Backend + Frontend Preview).
 
